@@ -24,11 +24,6 @@ export default function Home(props) {
 
   return (
     <div className="w-full h-full font-serif bg-gradient-to-br from-blue-400 to to-red-400">
-      <meta
-        http-equiv="Content-Security-Policy"
-        content="upgrade-insecure-requests"
-      />
-
       {/* título */}
       <div className="pt-3">
         <div className="w-full font-mono text-center text-4xl font-bold py-6 px-2 bg-white bg-opacity-40">
