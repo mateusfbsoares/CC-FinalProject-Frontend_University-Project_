@@ -3,10 +3,10 @@ import Home from "./Home";
 
 export default function index() {
   return (
-    <div className="">
+    <div className="w-full h-screen">
       {/* Head */}
       <Head>
-        <title>React Next.js - Google Colab</title>
+        <title>Geração de capas de álbum e vídeoclipes - Grupo 3</title>
       </Head>
 
       {/* Main Content */}

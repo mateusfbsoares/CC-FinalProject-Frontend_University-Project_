@@ -2,7 +2,7 @@ import "tailwindcss/tailwind.css";
 
 function MyApp({ Component, pageProps }) {
   return (
-    <div className="">
+    <div className="w-full">
       <Component {...pageProps} />
     </div>
   );
