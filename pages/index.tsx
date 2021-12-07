@@ -4,6 +4,11 @@ import Home from "./Home";
 export default function index() {
   return (
     <div className="w-full h-screen">
+      <meta
+        http-equiv="Content-Security-Policy"
+        content="upgrade-insecure-requests"
+      />
+
       {/* Head */}
       <Head>
         <title>Geração de capas de álbum e vídeoclipes - Grupo 3</title>

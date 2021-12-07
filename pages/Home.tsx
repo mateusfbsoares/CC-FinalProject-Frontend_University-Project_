@@ -46,14 +46,6 @@ export default function Home(props) {
               Provident iusto placeat modi nihil harum sunt quidem, labore
               adipisci? In exercitationem sed ipsam neque incidunt sequi, qui
               cumque delectus, animi et, natus culpa facilis aliquid quia
-              dolores omnis porro alias doloribus molestias ullam similique
-              distinctio aliquam officiis veniam? Fugiat voluptate dolorem ullam
-              vero consequatur praesentium earum quis inventore, quae deserunt
-              itaque necessitatibus dicta totam provident incidunt nisi
-              molestiae optio ad distinctio similique numquam tempora obcaecati.
-              Dignissimos laudantium ab quidem, velit minima nisi, recusandae
-              eligendi nulla esse sunt praesentium. Consectetur temporibus culpa
-              excepturi?
             </div>
           </div>
         </div>
@@ -181,7 +173,7 @@ export default function Home(props) {
             <div className="w-full text-center font-bold mb-4">
               Customização
             </div>{" "}
-            <span>...</span>
+            <span>Opções...</span>
           </div>
         </div>
 
@@ -189,7 +181,7 @@ export default function Home(props) {
         <div className="flex justify-center pt-4">
           {/* card da direita */}
           <div className="shadow-2xl bg-white bg-opacity-60 w-10/12 laptop-L:w-8/12 rounded-xl text-center mr-2 text-black text-xl pt-2 pb-4 px-2">
-            <div className="w-full text-center font-bold mb-4">Output</div>{" "}
+            <div className="w-full text-center font-bold mb-4">Vídeo final</div>{" "}
             <div className="py-2 text-2xl text-center w-full">
               {/* content */}
               <div className="flex justify-center py-4">
