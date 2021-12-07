@@ -8,7 +8,7 @@ export default function index() {
       <Head>
         <meta
           http-equiv="Content-Security-Policy"
-          content="block-all-mixed-content"
+          content="upgrade-insecure-requests"
         />
 
         <title>Geração de capas de álbum e vídeoclipes - Grupo 3</title>
