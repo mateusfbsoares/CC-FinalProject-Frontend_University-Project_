@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 
 export default function Home(props) {
-  const googleColabUrl =
-    "https://colab.research.google.com/drive/1npdabuO7eq8YEsT9hLecHLLLuLAzi2f6?usp=sharing";
+  const googleColabUrl = "";
   const [outputImageUrl, setOutputImageUrl] = useState<string>();
   const [inputColor, setInputColor] = useState<string>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [url, setUrl] = useState<string>("http://localhost:5000");
+  const [url, setUrl] = useState<string>();
 
   function generateImage_and_getImageUrl() {
     const fetchApi = async () => {
@@ -21,7 +20,6 @@ export default function Home(props) {
   }
 
   // tags
-
   return (
     <div className="w-full h-full font-serif bg-gradient-to-br from-blue-400 to to-red-400">
       {/* título */}
@@ -70,7 +68,10 @@ export default function Home(props) {
 
         <div className="flex justify-center flex-wrap text-2xl">
           <span className="w-full text-center">Cole a url aqui</span>
-          <form className="flex flex-wrap justify-center items-center">
+          <form
+            onSubmit={(e) => e.preventDefault()}
+            className="flex flex-wrap justify-center items-center"
+          >
             <label>
               <input
                 type="text"
