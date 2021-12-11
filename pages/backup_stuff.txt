@@ -1,0 +1,11 @@
+  //   const fetchApi = async () => {
+  //     const response = await fetch(
+  //       `${url}/generateImage?inputColor=${inputColor}`
+  //     ).then((response) => {
+  //       setOutputImageUrl(response.url);
+  //       setisLyricsLoading(false);
+  //     });
+  //   };
+  //   fetchApi();
+  // }
+

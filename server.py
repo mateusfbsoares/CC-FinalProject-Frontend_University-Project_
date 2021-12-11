@@ -8,24 +8,35 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
+colors = ["red","blue","yellow","green"]
+index = 0
+
 @app.route("/")
 def hello():
     return "Hello World!"
 
 @app.route("/generateImage")
 def generateImage():
-  inputColor = request.args.get('inputColor')
+  print("generateImage foi invocado")
+
+  global index
+  if index == len(colors):
+    return "None"
+
+  inputColor = colors[index]
+  index+=1
+
   width = 50
   height = 50
-  color = (153, 153, 255)
   img = Image.new('RGB', (width, height), inputColor)
   os.system("rm image.png")
   img.save('image.png')
+
   return send_file('image.png')
 
-@app.route("/getImage")
-def getImage():
-  return send_file("image.png")
+# @app.route("/getImage")
+# def getImage():
+#   return send_file("image.png")
 
 if __name__ == '__main__':
     app.run()  # If address is in use, may need to terminate other sessions:

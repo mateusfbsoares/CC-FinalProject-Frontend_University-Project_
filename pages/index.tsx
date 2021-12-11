@@ -7,7 +7,7 @@ export default function index() {
       {/* Head */}
       <Head>
         <meta
-          http-equiv="Content-Security-Policy"
+          httpEquiv="Content-Security-Policy"
           content="upgrade-insecure-requests"
         />
 
