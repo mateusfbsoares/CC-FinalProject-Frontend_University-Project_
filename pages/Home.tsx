@@ -1,15 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import UseInterval from "../hooks/useInterval";
+import { useDropzone } from "react-dropzone";
+import { AiFillFileAdd, AiOutlineLoading } from "react-icons/ai";
 
 const googleColabUrl =
-  "https://colab.research.google.com/drive/13Gaknk-wCokQm52_eBUb6xJca9CvEYIe?usp=sharing";
+  "https://colab.research.google.com/drive/1H6HDpo4JVSSJUoh-airz90ysObmIixkv?usp=sharing";
 
 export default function Home() {
   const [backendUrl, setBackendUrl] = useState<string>("");
   const [option, setOption] = useState<number>(0);
   const [passo2TextInput, setPasso2TextInput] = useState<string>("");
   const [lyrics, setLyrics] = useState<string>("");
+  const [selectedLyrics, setSelectedLyrics] = useState<boolean>(false);
   const [isImageGenerationHappening, setIsImageGenerationHappening] =
     useState<boolean>();
   const [isNewImageAvailable, setIsNewImageAvailable] = useState<boolean>();
@@ -18,9 +21,13 @@ export default function Home() {
   const [hasImageGenerationFinished, setHasImageGenerationFinished] =
     useState<boolean>(false);
   const [conectadoComColab, setConectadoComColab] = useState<boolean>(false);
+  const [hasAudio, setHasAudio] = useState<boolean>(false);
+  const [audio, setAudio] = useState<any>();
+  const [isSearchingLyrics, setIsSearchingLyrics] = useState<boolean>(false);
 
   // definição de funções
   function searchSong() {
+    setIsSearchingLyrics(true);
     const search = async () => {
       const response = await fetch(
         `${backendUrl}${
@@ -50,6 +57,7 @@ export default function Home() {
           });
 
           setLyrics(arr.join("\n"));
+          setIsSearchingLyrics(false);
         });
     };
     search();
@@ -84,7 +92,6 @@ export default function Home() {
   }
 
   function pollIsNewImageAvailable() {
-    console.log("&&&  pollIsNewImageAvailable &&&");
     const fetchPollNewImageAvailable = async () => {
       const response = await fetch(
         `${backendUrl}${
@@ -118,8 +125,6 @@ export default function Home() {
   }
 
   function getGeneratedImage() {
-    console.log("### getGeneratedImage ###");
-
     setHasImageGenerationFinished(false);
 
     const fetchPollGetGeneratedImage = async () => {
@@ -206,6 +211,10 @@ export default function Home() {
     }
   }
 
+  function sendAudioToBackend() {
+    setHasAudio(true);
+  }
+
   // poll backend
   UseInterval(() => {
     if (isImageGenerationHappening) {
@@ -220,10 +229,12 @@ export default function Home() {
       className={`
 overflow-x-hidden
       ${
-        backendUrl !== "" && conectadoComColab
-          ? "h-full"
-          : "h-screen overflow-y-hidden"
-      } bg-gradient-to-br from-red-100 to-red-300 flex flex-wrap justify-center items-start`}
+        // backendUrl !== "" && conectadoComColab
+        // ? "h-full"
+        // : "h-screen overflow-y-hidden"
+        "h-full"
+      }
+       bg-gradient-to-br from-gray-400 to-blue-600 flex flex-wrap justify-center items-start`}
     >
       <div className="w-full font-mono text-center text-4xl font-bold py-6 px-2 bg-white bg-opacity-40">
         Geração de arte para músicas - Grupo 3
@@ -247,7 +258,7 @@ overflow-x-hidden
       <div className="mb-12  shadow-2xl bg-white bg-opacity-60 w-10/12 laptop-L:w-8/12 rounded-xl text-center mr-2 text-black text-xl pt-2 pb-4 px-2">
         {/* título */}
         <div className="w-full text-center font-bold mb-4">
-          Primeiro passo
+          Primeiro passo - Conectando com o Google Colab
         </div>{" "}
         {/* descrição */}
         <span className="pr-1">Rode o backend no</span>
@@ -298,14 +309,18 @@ overflow-x-hidden
                   }
                 );
               }}
-              className=" bg-gray-300 p-1 hover:scale-105 duration-100 rounded-xl cursor-pointer"
+              className={`p-2 hover:scale-105 duration-100 rounded-xl cursor-pointer ${
+                conectadoComColab == true
+                  ? "text-black font-bold border-2 bg-white"
+                  : "bg-white opacity-50"
+              }
+              } `}
             >
-              Conectar com o Google Colab
+              {conectadoComColab
+                ? "Conexão estabelecida"
+                : "Conectar com o Google Colab"}
             </div>
           </div>
-          {conectadoComColab && (
-            <div className="w-full">Conexão estabelecida.</div>
-          )}
         </div>
       </div>
 
@@ -314,7 +329,7 @@ overflow-x-hidden
         <div className="mb-12 shadow-2xl bg-white bg-opacity-60 w-10/12 laptop-L:w-8/12 rounded-xl text-center mr-2 text-black text-xl pt-2 pb-4 px-2">
           {/* título */}
           <div className="w-full text-center font-bold mb-4">
-            Segundo Passo
+            Segundo Passo - Escolhendo a letra de uma música
           </div>{" "}
           {/* descrição */}
           <div>
@@ -326,10 +341,10 @@ overflow-x-hidden
                 setOption(1);
                 setPasso2TextInput("");
               }}
-              className={` ${
+              className={`p-2 ${
                 option == 1
-                  ? "bg-gray-500 text-white border-2 border-red-600"
-                  : "bg-white"
+                  ? "text-black font-bold border-2 bg-white"
+                  : "bg-white opacity-50"
               } my-1 transform hover:scale-105 rounded-xl cursor-pointer w-full mx-2 duration-100`}
             >
               Escolher uma música que já existe
@@ -339,10 +354,10 @@ overflow-x-hidden
                 setOption(2);
                 setPasso2TextInput("");
               }}
-              className={`bg-white ${
+              className={`p-2 bg-white ${
                 option == 2
-                  ? "bg-gray-500 text-white border-2 border-red-600"
-                  : "bg-white"
+                  ? "text-black font-bold border-2 bg-white"
+                  : "bg-white opacity-50"
               } my-1 transform hover:scale-105 rounded-xl cursor-pointer w-full mx-2 duration-100`}
             >
               Fornecer a letra da minha música autoral
@@ -366,6 +381,7 @@ overflow-x-hidden
               } else if (option == 2) {
                 setLyrics(passo2TextInput);
                 handleStartImageGeneration();
+                setSelectedLyrics(true);
               }
             }}
             className="w-full"
@@ -403,12 +419,16 @@ overflow-x-hidden
                 </div>
               )}
             </label>
-            <div className="w-full flex justify-center my-3">
+            <div className="w-full flex flex-wrap justify-center my-3">
               <input
                 type="submit"
                 value={option == 1 ? "Pesquisar música" : "Enviar letra"}
                 className="text-black bg-white bg-opacity-80 border-3 border-black transform hover:scale-105 duration-150 font-bold p-1 text-xl rounded-xl cursor-pointer"
               />
+
+              <div className="w-full mt-8">
+                {isSearchingLyrics ? "Procurando música..." : ""}
+              </div>
             </div>
           </form>
           {!isImageGenerationHappening && (
@@ -428,6 +448,7 @@ overflow-x-hidden
                   <div
                     onClick={() => {
                       handleStartImageGeneration();
+                      setSelectedLyrics(true);
                     }}
                     className="mx-2 mb-4 bg-green-800 font-bold text-white rounded-lg px-1 hover:scale-105 duration-100 cursor-pointer"
                   >
@@ -455,7 +476,7 @@ overflow-x-hidden
               </div>
             )}
             {outputImagesUrls !== undefined && (
-              <div className="flex w-full">
+              <div className="grid grid-cols-1  tablet:grid-cols-3 4k:grid-cols-5 w-full justify-center">
                 {outputImagesUrls.map((imageUrl, index) => {
                   return (
                     <div key={index} className="m-1">
@@ -466,7 +487,7 @@ overflow-x-hidden
                 })}
               </div>
             )}
-            {lyrics != "" && (
+            {selectedLyrics && lyrics != "" && (
               <div>
                 {!hasImageGenerationFinished && (
                   <div className="w-full mt-4 flex flex-wrap justify-center items-center">
@@ -481,10 +502,6 @@ overflow-x-hidden
                     <div className="w-full">
                       Todas as imagens foram geradas.
                     </div>
-                    {/* <div>
-                      Para rodar novamente, reinicie esta página e refaça os
-                      passos
-                    </div> */}
                   </div>
                 )}
               </div>
@@ -494,8 +511,26 @@ overflow-x-hidden
       )}
 
       {/* Passo 3 */}
-      {hasImageGenerationFinished && lyrics != "" && (
-        <div className="my-12 shadow-2xl bg-white bg-opacity-60 h-min w-10/12 text-center text-black text-xl pt-2 pb-4">
+      {option == 2 && hasImageGenerationFinished && lyrics != "" && (
+        <div className="rounded-xl my-12 flex flex-wrap justify-center items-center shadow-2xl bg-white bg-opacity-60 h-min w-10/12 text-center text-black text-xl pt-2 pb-4">
+          <div className="w-full text-center font-bold mb-2">
+            Terceiro Passo - Fazendo upload de sua música autoral
+          </div>{" "}
+          <div>Forneça um arquivo .mp3 com o áudio da música</div>
+          <div className="w-9/12 m-2 h-72 flex justify-center">
+            <Dropzone
+              setDataObject={setAudio}
+              backendUrl={backendUrl}
+              hasAudio={hasAudio}
+              setHasAudio={setHasAudio}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Video */}
+      {(option == 1 || hasAudio) && hasImageGenerationFinished && lyrics != "" && (
+        <div className="rounded-xl my-12 shadow-2xl bg-white bg-opacity-60 h-min w-10/12 text-center text-black text-xl pt-2 pb-4">
           <div className="w-full text-center font-bold mb-4">
             Vídeo de espaço latente
           </div>{" "}
@@ -509,7 +544,95 @@ overflow-x-hidden
       )}
 
       {/* footer */}
+
+      <div className="rounded-xl items-center justify-center my-12 shadow-2xl bg-white bg-opacity-60 h-min w-10/12 text-center text-black text-xl pt-2 pb-4">
+        <div className="mt-4 text-gray-700">
+          Para rodar novamente, reinicie esta página e refaça os passos
+        </div>
+        <div className=" font-bold mt-12">Créditos:</div>
+        {[
+          { name: "Mateus", link: "https://mateusfbsoares.com" },
+          { name: "Gabriel", link: "https://google.com:" },
+          { name: "Maria Luísa", link: "https://google.com:" },
+          { name: "Thiago", link: "https://google.com:" },
+          { name: "Maria Eduarda", link: "https://google.com:" },
+          { name: "Pedro", link: "https://google.com:" },
+          { name: "Marcos Lira", link: "https://google.com:" },
+        ].map((person, index) => {
+          return (
+            <a
+              target={"_blank"}
+              className="w-full block underline"
+              href={person.link}
+            >
+              {person.name}
+            </a>
+          );
+        })}
+      </div>
+
       <div className="w-full h-2 mt-32"></div>
+    </div>
+  );
+}
+
+function Dropzone(props: {
+  setDataObject: any;
+  backendUrl: string;
+  hasAudio: boolean;
+  setHasAudio: Function;
+}) {
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+
+  const onDrop = useCallback((acceptedFiles) => {
+    setIsUploading(true);
+    async function sendFileAndGetResponse() {
+      var formdata = new FormData();
+      formdata.append("file", acceptedFiles[0]);
+      const response = await fetch(`${props.backendUrl}uploadAudio`, {
+        method: "POST",
+        body: formdata,
+        mode: "cors",
+      });
+      const jsonResponse = await response.json();
+      props.setDataObject(jsonResponse);
+      console.log(jsonResponse);
+      setIsUploading(false);
+      props.setHasAudio(true);
+    }
+    sendFileAndGetResponse();
+  }, []);
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+  });
+
+  return (
+    <div
+      {...getRootProps()}
+      className="cursor-pointer w-full h-full text-base tablet:text-xl 4k:text-4xl flex flex-col justify-center items-center p-4 tablet:px-2 text-gray-700 bg-white opacity-80"
+    >
+      {isUploading ? (
+        <div className="flex flex-wrap justify-center">
+          <div className="w-full">Fazendo Upload</div>
+          <AiOutlineLoading className="text-3xl mt-6 animate-spin" />
+        </div>
+      ) : (
+        <div>
+          <input {...getInputProps()} />
+          <div className="flex flex-wrap justify-center">
+            {isDragActive ? (
+              <p className="w-full">Arraste o .mp3 aqui ...</p>
+            ) : props.hasAudio ? (
+              <div className="w-full">Audio Carregado.</div>
+            ) : (
+              <p className="w-full">
+                Arraste um arquivo de mp3 aqui, ou clique para selecionar um
+                <AiFillFileAdd className="text-6xl mt-4 text-gray-600 transform hover:scale-105 duration-300 cursor-pointer" />
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
