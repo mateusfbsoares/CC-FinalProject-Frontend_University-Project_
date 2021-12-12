@@ -3,7 +3,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import UseInterval from "../hooks/useInterval";
 
 const googleColabUrl =
-  "https://colab.research.google.com/drive/1npdabuO7eq8YEsT9hLecHLLLuLAzi2f6?usp=sharing";
+  "https://colab.research.google.com/drive/13Gaknk-wCokQm52_eBUb6xJca9CvEYIe?usp=sharing";
 
 export default function Home() {
   const [backendUrl, setBackendUrl] = useState<string>("");
