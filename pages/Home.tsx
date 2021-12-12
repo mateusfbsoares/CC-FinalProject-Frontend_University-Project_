@@ -266,7 +266,7 @@ overflow-x-hidden
           Google Colab
         </a>
         <span>
-          , copie a url gerada (no formato xxxx.ngrok.io) e cole no campo abaixo
+          , copie a url gerada (no formato xxxx.jprq.io) e cole no campo abaixo
         </span>
         {/* Input */}
         <div className="flex justify-center flex-wrap text-2xl">
