@@ -17,6 +17,7 @@ export default function Home() {
   const [outputImagesVerses, setOutputImagesVerses] = useState<string[]>();
   const [hasImageGenerationFinished, setHasImageGenerationFinished] =
     useState<boolean>(false);
+  const [conectadoComColab, setConectadoComColab] = useState<boolean>(false);
 
   // definição de funções
   function searchSong() {
@@ -207,8 +208,10 @@ export default function Home() {
 
   // poll backend
   UseInterval(() => {
-    pollIsNewImageAvailable();
-    pollHasImageGenerationFinished();
+    if (isImageGenerationHappening) {
+      pollIsNewImageAvailable();
+      pollHasImageGenerationFinished();
+    }
   }, 1000);
 
   // JSX
@@ -268,11 +271,16 @@ overflow-x-hidden
               onChange={(e) => {
                 e.preventDefault();
                 setBackendUrl(e.target.value);
+              }}
+            />
+          </form>
+          <div className="w-full my-4 flex justify-center">
+            <div
+              onClick={() => {
+                setConectadoComColab(true);
                 fetch(
-                  `${e.target.value}${
-                    e.target.value.slice(e.target.value.length - 1) == "/"
-                      ? ""
-                      : "/"
+                  `${backendUrl}${
+                    backendUrl.slice(backendUrl.length - 1) == "/" ? "" : "/"
                   }clear`,
                   {
                     method: "get",
@@ -288,8 +296,14 @@ overflow-x-hidden
                   }
                 );
               }}
-            />
-          </form>
+              className=" bg-gray-300 p-1 hover:scale-105 duration-100 rounded-xl cursor-pointer"
+            >
+              Conectar com o Google Colab
+            </div>
+          </div>
+          {conectadoComColab && (
+            <div className="w-full">Conexão estabelecida.</div>
+          )}
         </div>
       </div>
 
@@ -461,7 +475,15 @@ overflow-x-hidden
                   </div>
                 )}
                 {hasImageGenerationFinished && (
-                  <div className="w-full">Todas as imagens foram geradas.</div>
+                  <div>
+                    <div className="w-full">
+                      Todas as imagens foram geradas.
+                    </div>
+                    {/* <div>
+                      Para rodar novamente, reinicie esta página e refaça os
+                      passos
+                    </div> */}
+                  </div>
                 )}
               </div>
             )}
@@ -470,7 +492,19 @@ overflow-x-hidden
       )}
 
       {/* Passo 3 */}
-      {false && <div className="mb-32"> </div>}
+      {hasImageGenerationFinished && lyrics != "" && (
+        <div className="my-12 shadow-2xl bg-white bg-opacity-60 h-min w-10/12 text-center text-black text-xl pt-2 pb-4">
+          <div className="w-full text-center font-bold mb-4">
+            Vídeo de espaço latente
+          </div>{" "}
+          <div className="w-full h-72 flex justify-center">
+            <iframe
+              className="w-min h-full"
+              src={`${backendUrl}/generateVideo`}
+            />
+          </div>
+        </div>
+      )}
 
       {/* footer */}
       <div className="w-full h-2 mt-32"></div>
