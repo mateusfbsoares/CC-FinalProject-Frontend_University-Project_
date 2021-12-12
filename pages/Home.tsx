@@ -308,7 +308,7 @@ overflow-x-hidden
       </div>
 
       {/* Passo 2 */}
-      {backendUrl !== "" && (
+      {conectadoComColab && backendUrl !== "" && (
         <div className="mb-12 shadow-2xl bg-white bg-opacity-60 w-10/12 laptop-L:w-8/12 rounded-xl text-center mr-2 text-black text-xl pt-2 pb-4 px-2">
           {/* título */}
           <div className="w-full text-center font-bold mb-4">
