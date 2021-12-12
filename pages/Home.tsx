@@ -220,7 +220,9 @@ export default function Home() {
       className={`
 overflow-x-hidden
       ${
-        backendUrl !== "" ? "h-full" : "h-screen overflow-y-hidden"
+        backendUrl !== "" && conectadoComColab
+          ? "h-full"
+          : "h-screen overflow-y-hidden"
       } bg-gradient-to-br from-red-100 to-red-300 flex flex-wrap justify-center items-start`}
     >
       <div className="w-full font-mono text-center text-4xl font-bold py-6 px-2 bg-white bg-opacity-40">
