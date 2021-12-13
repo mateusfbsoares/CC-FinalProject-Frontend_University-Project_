@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import UseInterval from "../hooks/useInterval";
 import { useDropzone } from "react-dropzone";
@@ -24,7 +24,7 @@ export default function Home() {
   const [hasAudio, setHasAudio] = useState<boolean>(false);
   const [audio, setAudio] = useState<any>();
   const [isSearchingLyrics, setIsSearchingLyrics] = useState<boolean>(false);
-
+  const [isVideoGenerated, setIsVideoGenerated] = useState<boolean>(false);
   // definição de funções
   function searchSong() {
     setIsSearchingLyrics(true);
@@ -211,15 +211,78 @@ export default function Home() {
     }
   }
 
-  function sendAudioToBackend() {
-    setHasAudio(true);
+  // function sendAudioToBackend() {
+  //   setHasAudio(true);
+  // }
+
+  function startVideoGeneration() {
+    const start = async () => {
+      const response = await fetch(
+        `${backendUrl}generateVideo?isFamous=${option == 1 ? true : false}`,
+        {
+          method: "get",
+          headers: new Headers({
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "DELETE, POST, GET, OPTIONS",
+            "Access-Control-Allow-Headers":
+              "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With",
+          }),
+          mode: "cors",
+        }
+      );
+    };
+    start();
   }
+
+  function pollHasVideoBeenGenerated() {
+    const pollVideoGenerationFinishedStatus = async () => {
+      const response = await fetch(
+        `${backendUrl}${
+          backendUrl.slice(backendUrl.length - 1) == "/" ? "" : "/"
+        }isVideoFinished`,
+        {
+          method: "get",
+          headers: new Headers({
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "DELETE, POST, GET, OPTIONS",
+            "Access-Control-Allow-Headers":
+              "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With",
+          }),
+          mode: "cors",
+        }
+      )
+        .then((response) => response.json())
+        .then((ResponseJSON) => {
+          setIsVideoGenerated(ResponseJSON);
+        });
+    };
+    if (backendUrl !== "") {
+      pollVideoGenerationFinishedStatus();
+    }
+  }
+
+  useEffect(() => {
+    if (hasImageGenerationFinished == true) {
+      startVideoGeneration();
+    }
+  }, [hasImageGenerationFinished]);
+
+  // UseInterval(() => {
+  //   console.log("------");
+  //   console.log(isVideoGenerated);
+  //   console.log(isImageGenerationHappening);
+  //   console.log("------");
+  // }, 1000);
 
   // poll backend
   UseInterval(() => {
-    if (isImageGenerationHappening) {
+    pollHasImageGenerationFinished();
+    if (!hasImageGenerationFinished) {
       pollIsNewImageAvailable();
-      pollHasImageGenerationFinished();
+    } else {
+      pollHasVideoBeenGenerated();
     }
   }, 1000);
 
@@ -535,12 +598,17 @@ overflow-x-hidden
             Vídeo de espaço latente
           </div>{" "}
           <div className="w-full h-72 flex justify-center">
-            <iframe
-              className="w-min h-full"
-              src={`${backendUrl}generateVideo?isFamous=${
-                option == 1 ? true : false
-              }`}
-            />
+            {!isVideoGenerated && (
+              <div>
+                <AiOutlineLoading3Quarters className="animate-spin" />
+              </div>
+            )}
+            {isVideoGenerated && (
+              <iframe
+                className="w-min h-full"
+                src={`${backendUrl}getGeneratedVideo`}
+              />
+            )}
           </div>
         </div>
       )}
