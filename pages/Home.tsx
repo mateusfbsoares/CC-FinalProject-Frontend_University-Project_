@@ -479,7 +479,7 @@ overflow-x-hidden
               <div className="grid grid-cols-1  tablet:grid-cols-3 4k:grid-cols-5 w-full justify-center">
                 {outputImagesUrls.map((imageUrl, index) => {
                   return (
-                    <div key={index} className="m-1">
+                    <div key={index} className="m-1 flex justify-center">
                       <img src={imageUrl} />
                       {/* <div>{outputImagesVerses[index]}</div> */}
                     </div>
@@ -537,7 +537,9 @@ overflow-x-hidden
           <div className="w-full h-72 flex justify-center">
             <iframe
               className="w-min h-full"
-              src={`${backendUrl}/generateVideo`}
+              src={`${backendUrl}generateVideo?isFamous=${
+                option == 1 ? true : false
+              }`}
             />
           </div>
         </div>
@@ -625,7 +627,7 @@ function Dropzone(props: {
             ) : props.hasAudio ? (
               <div className="w-full">Audio Carregado.</div>
             ) : (
-              <p className="w-full">
+              <p className="w-full flex flex-wrap justify-center">
                 Arraste um arquivo de mp3 aqui, ou clique para selecionar um
                 <AiFillFileAdd className="text-6xl mt-4 text-gray-600 transform hover:scale-105 duration-300 cursor-pointer" />
               </p>
