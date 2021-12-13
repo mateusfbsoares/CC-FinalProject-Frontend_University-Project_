@@ -216,6 +216,8 @@ export default function Home() {
   // }
 
   function startVideoGeneration() {
+    console.log("#### Starting Video Generation ####");
+
     const start = async () => {
       const response = await fetch(
         `${backendUrl}generateVideo?isFamous=${option == 1 ? true : false}`,
@@ -263,18 +265,24 @@ export default function Home() {
     }
   }
 
+  // UseInterval(() => {
+  //   console.log("hasImageGenerationFinished:", hasImageGenerationFinished);
+  //   console.log("option:", option);
+  //   console.log("hasAudio:", hasAudio);
+  //   console.log(
+  //     "conditional:",
+  //     hasImageGenerationFinished == true && (option == 1 || hasAudio == true)
+  //   );
+  // }, 1000);
+
   useEffect(() => {
-    if (hasImageGenerationFinished == true) {
+    if (
+      hasImageGenerationFinished == true &&
+      (option == 1 || hasAudio == true)
+    ) {
       startVideoGeneration();
     }
   }, [hasImageGenerationFinished]);
-
-  // UseInterval(() => {
-  //   console.log("------");
-  //   console.log(isVideoGenerated);
-  //   console.log(isImageGenerationHappening);
-  //   console.log("------");
-  // }, 1000);
 
   // poll backend
   UseInterval(() => {
@@ -594,12 +602,12 @@ overflow-x-hidden
       {/* Video */}
       {(option == 1 || hasAudio) && hasImageGenerationFinished && lyrics != "" && (
         <div className="rounded-xl my-12 shadow-2xl bg-white bg-opacity-60 h-min w-10/12 text-center text-black text-xl pt-2 pb-4">
-          <div className="w-full text-center font-bold mb-4">
+          <div className="w-full text-center font-bold my-4">
             Vídeo de espaço latente
           </div>{" "}
           <div className="w-full h-72 flex justify-center">
             {!isVideoGenerated && (
-              <div>
+              <div className="w-full h-full flex justify-center items-center text-7xl">
                 <AiOutlineLoading3Quarters className="animate-spin" />
               </div>
             )}
@@ -659,11 +667,21 @@ function Dropzone(props: {
     async function sendFileAndGetResponse() {
       var formdata = new FormData();
       formdata.append("file", acceptedFiles[0]);
-      const response = await fetch(`${props.backendUrl}uploadAudio`, {
-        method: "POST",
-        body: formdata,
-        mode: "cors",
-      });
+      const response = await fetch(
+        `${props.backendUrl}uploadAudio?file=${formdata}`,
+        {
+          method: "post",
+          headers: new Headers({
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "DELETE, POST, GET, OPTIONS",
+            "Access-Control-Allow-Headers":
+              "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With",
+          }),
+          // body: formdata,
+          mode: "cors",
+        }
+      );
       const jsonResponse = await response.json();
       props.setDataObject(jsonResponse);
       console.log(jsonResponse);
@@ -693,7 +711,10 @@ function Dropzone(props: {
             {isDragActive ? (
               <p className="w-full">Arraste o .mp3 aqui ...</p>
             ) : props.hasAudio ? (
-              <div className="w-full">Audio Carregado.</div>
+              <div className="w-full">
+                <div className="w-full">Audio Carregado.</div>
+                <div className="w-full">Veja abaixo o vídeo gerado</div>
+              </div>
             ) : (
               <p className="w-full flex flex-wrap justify-center">
                 Arraste um arquivo de mp3 aqui, ou clique para selecionar um
