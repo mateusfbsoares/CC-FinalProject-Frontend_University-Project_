@@ -5,7 +5,7 @@ import { useDropzone } from "react-dropzone";
 import { AiFillFileAdd, AiOutlineLoading } from "react-icons/ai";
 
 const googleColabUrl =
-  "https://colab.research.google.com/drive/1H6HDpo4JVSSJUoh-airz90ysObmIixkv?usp=sharing";
+  "https://colab.research.google.com/drive/1vluvzbwNTMSbTvi1_h2rIA1Au_7NkWrs?usp=sharing";
 
 export default function Home() {
   const [backendUrl, setBackendUrl] = useState<string>("");
@@ -17,6 +17,8 @@ export default function Home() {
     useState<boolean>();
   const [isNewImageAvailable, setIsNewImageAvailable] = useState<boolean>();
   const [outputImagesUrls, setOutputImagesUrls] = useState<string[]>();
+  const [outputImagesUrlsStyleTransfer, setOutputImagesUrlsStyleTransfer] =
+    useState<string[]>();
   const [outputImagesVerses, setOutputImagesVerses] = useState<string[]>();
   const [hasImageGenerationFinished, setHasImageGenerationFinished] =
     useState<boolean>(false);
@@ -25,6 +27,20 @@ export default function Home() {
   const [audio, setAudio] = useState<any>();
   const [isSearchingLyrics, setIsSearchingLyrics] = useState<boolean>(false);
   const [isVideoGenerated, setIsVideoGenerated] = useState<boolean>(false);
+  const [hasVideoGenerationStarted, setHasVideoGenerationStarted] =
+    useState<boolean>(false);
+  const [hasStyleTransferFinished, setHasStyleTransferFinished] =
+    useState<boolean>(false);
+  const [hasStyleTransferStarted, setHasStyleTransferStarted] =
+    useState<boolean>(false);
+  const [styleUrl, setStyleUrl] = useState<string>("");
+  const [
+    doesUserWantsToApplyStyleTransfer,
+    setDoesUserWantsToApplyStyleTransfer,
+  ] = useState<boolean>(false);
+  const [ignoreStyleTransfer, setIgnoreStyleTransfer] =
+    useState<boolean>(false);
+
   // definição de funções
   function searchSong() {
     setIsSearchingLyrics(true);
@@ -91,6 +107,30 @@ export default function Home() {
     startGeneration();
   }
 
+  function startDummyImageGeneration() {
+    setHasImageGenerationFinished(false);
+
+    const startGeneration = async () => {
+      const response = await fetch(
+        `${backendUrl}${
+          backendUrl.slice(backendUrl.length - 1) == "/" ? "" : "/"
+        }startDummyImageGeneration`,
+        {
+          method: "get",
+          headers: new Headers({
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "DELETE, POST, GET, OPTIONS",
+            "Access-Control-Allow-Headers":
+              "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With",
+          }),
+          mode: "cors",
+        }
+      ).then(() => setIsImageGenerationHappening(true));
+    };
+    startGeneration();
+  }
+
   function pollIsNewImageAvailable() {
     const fetchPollNewImageAvailable = async () => {
       const response = await fetch(
@@ -131,15 +171,28 @@ export default function Home() {
       const response = await fetch(`${backendUrl}getGeneratedImage`)
         .then((response) => response.blob())
         .then((imageBlob) => {
-          const imageObjectUrl = URL.createObjectURL(imageBlob);
+          if (!doesUserWantsToApplyStyleTransfer) {
+            const imageObjectUrl = URL.createObjectURL(imageBlob);
 
-          if (outputImagesUrls === undefined) {
-            setOutputImagesUrls([imageObjectUrl]);
+            if (outputImagesUrls === undefined) {
+              setOutputImagesUrls([imageObjectUrl]);
+            } else {
+              setOutputImagesUrls((currentArray) => [
+                ...currentArray,
+                imageObjectUrl,
+              ]);
+            }
           } else {
-            setOutputImagesUrls((currentArray) => [
-              ...currentArray,
-              imageObjectUrl,
-            ]);
+            const imageObjectUrl = URL.createObjectURL(imageBlob);
+
+            if (outputImagesUrlsStyleTransfer === undefined) {
+              setOutputImagesUrlsStyleTransfer([imageObjectUrl]);
+            } else {
+              setOutputImagesUrlsStyleTransfer((currentArray) => [
+                ...currentArray,
+                imageObjectUrl,
+              ]);
+            }
           }
         });
     };
@@ -204,6 +257,7 @@ export default function Home() {
         .then((response) => response.json())
         .then((ResponseJSON) => {
           setHasImageGenerationFinished(ResponseJSON);
+          console.log("hasFinished: ", ResponseJSON);
         });
     };
     if (backendUrl !== "") {
@@ -265,24 +319,55 @@ export default function Home() {
     }
   }
 
-  // UseInterval(() => {
-  //   console.log("hasImageGenerationFinished:", hasImageGenerationFinished);
-  //   console.log("option:", option);
-  //   console.log("hasAudio:", hasAudio);
-  //   console.log(
-  //     "conditional:",
-  //     hasImageGenerationFinished == true && (option == 1 || hasAudio == true)
-  //   );
-  // }, 1000);
+  function startStyleTransfer() {
+    const start = async () => {
+      const response = await fetch(
+        `${backendUrl}style_transfer?url=${styleUrl}`,
+        {
+          method: "get",
+          headers: new Headers({
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "DELETE, POST, GET, OPTIONS",
+            "Access-Control-Allow-Headers":
+              "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With",
+          }),
+          mode: "cors",
+        }
+      );
+    };
+    start();
+  }
 
-  useEffect(() => {
-    if (
-      hasImageGenerationFinished == true &&
-      (option == 1 || hasAudio == true)
-    ) {
-      startVideoGeneration();
+  function pollHasStyleTransferFinished() {
+    const pollStyleTransfer = async () => {
+      const response = await fetch(
+        `${backendUrl}${
+          backendUrl.slice(backendUrl.length - 1) == "/" ? "" : "/"
+        }isStyleTransferFinished`,
+        {
+          method: "get",
+          headers: new Headers({
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "DELETE, POST, GET, OPTIONS",
+            "Access-Control-Allow-Headers":
+              "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With",
+          }),
+          mode: "cors",
+        }
+      )
+        .then((response) => response.json())
+        .then((ResponseJSON) => {
+          setHasStyleTransferFinished(ResponseJSON);
+        });
+    };
+    if (backendUrl !== "") {
+      pollStyleTransfer();
     }
-  }, [hasImageGenerationFinished]);
+  }
+
+  useEffect(() => {}, [hasImageGenerationFinished, isImageGenerationHappening]);
 
   // poll backend
   UseInterval(() => {
@@ -290,7 +375,22 @@ export default function Home() {
     if (!hasImageGenerationFinished) {
       pollIsNewImageAvailable();
     } else {
-      pollHasVideoBeenGenerated();
+      if (hasStyleTransferFinished) {
+        if (
+          !hasVideoGenerationStarted &&
+          hasImageGenerationFinished == true &&
+          (option == 1 || hasAudio == true)
+        ) {
+          console.log("###### Starting Video Generation #####");
+          startVideoGeneration();
+          setHasVideoGenerationStarted(true);
+        } else {
+          pollHasVideoBeenGenerated();
+          console.log("--- checking if video was generated ---");
+        }
+      } else {
+        pollHasStyleTransferFinished();
+      }
     }
   }, 1000);
 
@@ -305,10 +405,19 @@ overflow-x-hidden
         // : "h-screen overflow-y-hidden"
         "h-full"
       }
-       bg-gradient-to-br from-gray-400 to-blue-600 flex flex-wrap justify-center items-start`}
+       bg-gradient-to-br from-gray-400 to-blue-600 flex flex-wrap justify-center items-start pb-32`}
     >
       <div className="w-full font-mono text-center text-4xl font-bold py-6 px-2 bg-white bg-opacity-40">
         Geração de arte para músicas - Grupo 3
+      </div>
+
+      <div className="w-full flex justify-center items-center mt-12">
+        <a
+          className="font-bold underline text-xl bg-white opacity-40 p-1 animate-bounce"
+          href="https://colab.research.google.com/drive/1uLzE8CEQnORV1hgAiU8GKBYUc8pfNmg3?usp=sharing"
+        >
+          Colab Standalone de emergência
+        </a>
       </div>
 
       {/* Descrição da ferramenta */}
@@ -317,11 +426,8 @@ overflow-x-hidden
           O que é esta ferramenta?
         </div>{" "}
         <div className="px-4">
-          Lorem ipsum dolor sit amet consectetur, adipisicing elit. Est sunt
-          necessitatibus molestiae neque quisquam laboriosam modi eius?
-          Provident iusto placeat modi nihil harum sunt quidem, labore adipisci?
-          In exercitationem sed ipsam neque incidunt sequi, qui cumque delectus,
-          animi et, natus culpa facilis aliquid quia
+          Esta ferramenta permite gerar imagens a partir de letras de músicas,
+          aplicar style transfer e gerar um vídeo com o áudio da música de fundo
         </div>
       </div>
 
@@ -562,7 +668,11 @@ overflow-x-hidden
               <div>
                 {!hasImageGenerationFinished && (
                   <div className="w-full mt-4 flex flex-wrap justify-center items-center">
-                    <div className="w-full">Gerando imagens...</div>
+                    <div className="w-full">
+                      {doesUserWantsToApplyStyleTransfer
+                        ? "Aplicando style transfer"
+                        : "Gerando imagens..."}
+                    </div>
                     <div>
                       <AiOutlineLoading3Quarters className="animate-spin w-full" />
                     </div>
@@ -581,75 +691,192 @@ overflow-x-hidden
         </div>
       )}
 
-      {/* Passo 3 */}
-      {option == 2 && hasImageGenerationFinished && lyrics != "" && (
-        <div className="rounded-xl my-12 flex flex-wrap justify-center items-center shadow-2xl bg-white bg-opacity-60 h-min w-10/12 text-center text-black text-xl pt-2 pb-4">
-          <div className="w-full text-center font-bold mb-2">
-            Terceiro Passo - Fazendo upload de sua música autoral
-          </div>{" "}
-          <div>Forneça um arquivo .mp3 com o áudio da música</div>
-          <div className="w-9/12 m-2 h-72 flex justify-center">
-            <Dropzone
-              setDataObject={setAudio}
-              backendUrl={backendUrl}
-              hasAudio={hasAudio}
-              setHasAudio={setHasAudio}
-            />
-          </div>
-        </div>
-      )}
+      {!ignoreStyleTransfer &&
+        !hasStyleTransferFinished &&
+        hasImageGenerationFinished &&
+        lyrics != "" && (
+          <div className="bg-white bg-opacity-50 w-10/12 rounded-xl p-2 flex flex-wrap justify-center items-center mb-12">
+            <div>Deseja aplicar style transfer nas imagens?</div>
+            <div className="w-full flex justify-center">
+              <div
+                className="text-center my-2 mx-6 bg-green-500 w-min p-1 rounded-md hover:scale-105 duration-150 cursor-pointer "
+                onClick={() => setDoesUserWantsToApplyStyleTransfer(true)}
+              >
+                Sim
+              </div>
+              <div
+                className="my-2 mx-6 text-center bg-red-500 w-min p-1 rounded-md hover:scale-105 duration-150 cursor-pointer "
+                onClick={() => {
+                  setDoesUserWantsToApplyStyleTransfer(false);
+                  setIgnoreStyleTransfer(true);
+                  setHasStyleTransferFinished(true);
+                }}
+              >
+                Não
+              </div>
+            </div>
+            {doesUserWantsToApplyStyleTransfer && (
+              <div>
+                <div>
+                  Cole abaixo a url de uma imagem para ser utilizada como style
+                  do transfer
+                </div>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    startStyleTransfer();
+                    setHasStyleTransferStarted(true);
+                    setHasImageGenerationFinished(false);
+                    startDummyImageGeneration();
+                  }}
+                  className="w-full"
+                >
+                  <label className="w-full flex justify-center">
+                    <div>
+                      <input
+                        className="w-full p-2"
+                        value={styleUrl}
+                        onChange={(e) => setStyleUrl(e.target.value)}
+                      ></input>
+                    </div>
+                  </label>
+                  <div className="w-full flex flex-wrap justify-center my-3">
+                    <input
+                      type="submit"
+                      value="Começar Style transfer"
+                      className="text-black bg-white bg-opacity-80 border-3 border-black transform hover:scale-105 duration-150 font-bold p-1 text-xl rounded-xl cursor-pointer"
+                    />
 
-      {/* Video */}
-      {(option == 1 || hasAudio) && hasImageGenerationFinished && lyrics != "" && (
-        <div className="rounded-xl my-12 shadow-2xl bg-white bg-opacity-60 h-min w-10/12 text-center text-black text-xl pt-2 pb-4">
-          <div className="w-full text-center font-bold my-4">
-            Vídeo de espaço latente
-          </div>{" "}
-          <div className="w-full h-72 flex justify-center">
-            {!isVideoGenerated && (
-              <div className="w-full h-full flex justify-center items-center text-7xl">
-                <AiOutlineLoading3Quarters className="animate-spin" />
+                    <div className="w-full flex justify-center mt-8">
+                      {hasStyleTransferStarted
+                        ? "Realizando style transfer..."
+                        : ""}
+                    </div>
+                  </div>
+                </form>
               </div>
             )}
-            {isVideoGenerated && (
-              <iframe
-                className="w-min h-full"
-                src={`${backendUrl}getGeneratedVideo`}
-              />
-            )}
           </div>
+        )}
+
+      {false && hasStyleTransferFinished && doesUserWantsToApplyStyleTransfer && (
+        <div className="w-10/12 flex flex-wrap justify-center pt-4 bg-white bg-opacity-50">
+          {outputImagesUrlsStyleTransfer !== undefined && (
+            <div className="mb-3 text-2xl w-full text-center font-bold">
+              Imagens Geradas com aplicação de style transfer
+            </div>
+          )}
+          <div className="w-full flex flex-wrap justify-center items-center">
+            <div className="text-2xl w-full text-center">Style Image:</div>
+            <img style={{ maxWidth: "45%" }} src={styleUrl} />
+          </div>
+          {outputImagesUrlsStyleTransfer !== undefined && (
+            <div className="grid grid-cols-1 mt-4  tablet:grid-cols-3 4k:grid-cols-5 w-full justify-center">
+              {outputImagesUrlsStyleTransfer.map((imageUrl, index) => {
+                return (
+                  <div key={index} className="m-1 flex justify-center">
+                    <img src={imageUrl} />
+                    {/* <div>{outputImagesVerses[index]}</div> */}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          {
+            <div>
+              {!hasImageGenerationFinished && (
+                <div className="w-full mt-4 flex flex-wrap justify-center items-center">
+                  <div className="w-full">Gerando imagens...</div>
+                  <div>
+                    <AiOutlineLoading3Quarters className="animate-spin w-full" />
+                  </div>
+                </div>
+              )}
+              {hasImageGenerationFinished && (
+                <div>
+                  <div className="w-full">Todas as imagens foram geradas.</div>
+                </div>
+              )}
+            </div>
+          }
         </div>
       )}
 
-      {/* footer */}
+      {(hasStyleTransferFinished || ignoreStyleTransfer) && (
+        <div className="w-full flex flex-wrap justify-center">
+          {/* Passo 3 */}
+          {option == 2 && hasImageGenerationFinished && lyrics != "" && (
+            <div className="rounded-xl my-12 flex flex-wrap justify-center items-center shadow-2xl bg-white bg-opacity-60 h-min w-10/12 text-center text-black text-xl pt-2 pb-4">
+              <div className="w-full text-center font-bold mb-2">
+                Terceiro Passo - Fazendo upload de sua música autoral
+              </div>{" "}
+              <div>Forneça um arquivo .mp3 com o áudio da música</div>
+              <div className="w-9/12 m-2 h-72 flex justify-center">
+                <Dropzone
+                  setDataObject={setAudio}
+                  backendUrl={backendUrl}
+                  hasAudio={hasAudio}
+                  setHasAudio={setHasAudio}
+                />
+              </div>
+            </div>
+          )}
 
-      <div className="rounded-xl items-center justify-center my-12 shadow-2xl bg-white bg-opacity-60 h-min w-10/12 text-center text-black text-xl pt-2 pb-4">
-        <div className="mt-4 text-gray-700">
-          Para rodar novamente, reinicie esta página e refaça os passos
+          {/* Video */}
+          {(option == 1 || hasAudio) &&
+            hasImageGenerationFinished &&
+            lyrics != "" && (
+              <div className="rounded-xl my-12 shadow-2xl bg-white bg-opacity-60 h-min w-10/12 text-center text-black text-xl pt-2 pb-4">
+                <div className="w-full text-center font-bold my-4">
+                  Vídeo de espaço latente
+                </div>{" "}
+                <div className="w-full h-72 flex justify-center">
+                  {!isVideoGenerated && (
+                    <div className="w-full h-full flex justify-center items-center text-7xl">
+                      <AiOutlineLoading3Quarters className="animate-spin" />
+                    </div>
+                  )}
+                  {isVideoGenerated && (
+                    <iframe
+                      className="w-min h-full"
+                      src={`${backendUrl}getGeneratedVideo`}
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+
+          {/* footer */}
+
+          <div className="rounded-xl items-center justify-center my-12 shadow-2xl bg-white bg-opacity-60 h-min w-10/12 text-center text-black text-xl pt-2 pb-4">
+            <div className="mt-4 text-gray-700">
+              Para rodar novamente, reinicie esta página e refaça os passos
+            </div>
+            <div className=" font-bold mt-12">Créditos:</div>
+            {[
+              { name: "Mateus", link: "https://mateusfbsoares.com" },
+              { name: "Gabriel", link: "https://google.com:" },
+              { name: "Maria Luísa", link: "https://google.com:" },
+              { name: "Thiago", link: "https://google.com:" },
+              { name: "Maria Eduarda", link: "https://google.com:" },
+              { name: "Pedro", link: "https://google.com:" },
+              { name: "Marcos Lira", link: "https://google.com:" },
+            ].map((person, index) => {
+              return (
+                <a
+                  target={"_blank"}
+                  className="w-full block underline"
+                  href={person.link}
+                >
+                  {person.name}
+                </a>
+              );
+            })}
+          </div>
+
+          <div className="w-full h-2 mt-32"></div>
         </div>
-        <div className=" font-bold mt-12">Créditos:</div>
-        {[
-          { name: "Mateus", link: "https://mateusfbsoares.com" },
-          { name: "Gabriel", link: "https://google.com:" },
-          { name: "Maria Luísa", link: "https://google.com:" },
-          { name: "Thiago", link: "https://google.com:" },
-          { name: "Maria Eduarda", link: "https://google.com:" },
-          { name: "Pedro", link: "https://google.com:" },
-          { name: "Marcos Lira", link: "https://google.com:" },
-        ].map((person, index) => {
-          return (
-            <a
-              target={"_blank"}
-              className="w-full block underline"
-              href={person.link}
-            >
-              {person.name}
-            </a>
-          );
-        })}
-      </div>
-
-      <div className="w-full h-2 mt-32"></div>
+      )}
     </div>
   );
 }
@@ -667,21 +894,19 @@ function Dropzone(props: {
     async function sendFileAndGetResponse() {
       var formdata = new FormData();
       formdata.append("file", acceptedFiles[0]);
-      const response = await fetch(
-        `${props.backendUrl}uploadAudio?file=${formdata}`,
-        {
-          method: "post",
-          headers: new Headers({
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "DELETE, POST, GET, OPTIONS",
-            "Access-Control-Allow-Headers":
-              "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With",
-          }),
-          // body: formdata,
-          mode: "cors",
-        }
-      );
+      const response = await fetch(`${props.backendUrl}uploadAudio`, {
+        method: "POST",
+        headers: new Headers({
+          // "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "DELETE, POST, GET, OPTIONS",
+          "Access-Control-Allow-Headers":
+            "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With",
+        }),
+        // body: JSON.stringify(formdata),
+        body: formdata,
+        mode: "cors",
+      });
       const jsonResponse = await response.json();
       props.setDataObject(jsonResponse);
       console.log(jsonResponse);
@@ -719,6 +944,7 @@ function Dropzone(props: {
               <p className="w-full flex flex-wrap justify-center">
                 Arraste um arquivo de mp3 aqui, ou clique para selecionar um
                 <AiFillFileAdd className="text-6xl mt-4 text-gray-600 transform hover:scale-105 duration-300 cursor-pointer" />
+                <div>TAMANHO MÁXIMO: 1MB (limitação do jprq)</div>
               </p>
             )}
           </div>
