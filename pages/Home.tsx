@@ -24,8 +24,39 @@ export default function Home() {
   const [hasAudio, setHasAudio] = useState<boolean>(false);
   const [audio, setAudio] = useState<any>();
   const [isSearchingLyrics, setIsSearchingLyrics] = useState<boolean>(false);
+  const [imageStyleTransfer, setImageStyleTransfer] = useState<any>();
+  const [isApplyingStyle, setIsApplyingStyle] = useState<boolean>(false);
+  const [styledImage, setStyledImage] = useState<string>("");
 
   // definição de funções
+  
+  async function ApplyStyleTransfer() {
+    setIsApplyingStyle(true);
+    const response = await fetch(
+      `${backendUrl}${
+        backendUrl.slice(backendUrl.length - 1) == "/" ? "" : "/"
+      }style_transfer?image_style=${imageStyleTransfer}`,
+      {
+        method: "get",
+        headers: new Headers({
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "DELETE, POST, GET, OPTIONS",
+          "Access-Control-Allow-Headers":
+            "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With",
+        }),
+        mode: "cors",
+      }
+    )
+    .then( res => {
+      res.json().then( r => {
+        setStyledImage(r);
+        setIsApplyingStyle(false);
+      })
+    });
+  }
+
+
   function searchSong() {
     setIsSearchingLyrics(true);
     const search = async () => {
@@ -140,6 +171,7 @@ export default function Home() {
               ...currentArray,
               imageObjectUrl,
             ]);
+            console.log("outputImagesUrls: ", outputImagesUrls);
           }
         });
     };
@@ -497,11 +529,46 @@ overflow-x-hidden
                     </div>
                   </div>
                 )}
-                {hasImageGenerationFinished && (
+                {true && (
+                // {hasImageGenerationFinished && (
                   <div>
-                    <div className="w-full">
+                    <div className="w-full" style={{marginBottom :"30px"}}>
                       Todas as imagens foram geradas.
                     </div>
+                    <div className="w-full" style={{marginBottom :"10px"}}>
+                      <label htmlFor="imageLink"> Cole o link para um imagem</label>
+                    </div>
+                    <div className="w-full" style={{marginBottom :"10px"}}>
+                      <input type="text" id="imageLink" onChange = { e => { setImageStyleTransfer(e.target.value) }} />
+                    </div>
+                    { imageStyleTransfer && (
+                      <div>
+                        {/* <div className="w-6/12"> */}
+                        <div className="w-full" style={{marginBottom :"20px"}}>
+                          <p style={{marginBottom :"10px"}}>Imagem estilo</p>
+                          <img style={{ maxWidth: "300px", maxHeight: "300px", width: "auto", height: "auto"}} src={imageStyleTransfer}/>
+                        </div>
+                        <div style={{marginBottom :"20px"}}>
+                          <input
+                            type="button"
+                            value="Aplicar Style Transfer"
+                            className="text-black bg-white bg-opacity-80 border-3 border-black transform hover:scale-105 duration-150 font-bold p-1 text-xl rounded-xl cursor-pointer"
+                            onClick={() => { ApplyStyleTransfer() }}
+                          />
+                        </div>
+                        {isApplyingStyle && (
+                          <p>Aplicando estilo</p>
+                        )}
+                        { !isApplyingStyle && styledImage && (
+                          <div style={{marginBottom :"10px"}}>
+                            <p style={{marginBottom :"10px"}}>Imagem estilizada</p>
+                            <div>
+                              <img style={{ maxWidth: "300px", maxHeight: "300px", width: "auto", height: "auto"}} src={styledImage}/>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -557,7 +624,7 @@ overflow-x-hidden
           { name: "Thiago", link: "https://google.com:" },
           { name: "Maria Eduarda", link: "https://google.com:" },
           { name: "Pedro", link: "https://google.com:" },
-          { name: "Marcos Lira", link: "https://google.com:" },
+          { name: "Francisco Nascimento", link: "https://google.com:" },
         ].map((person, index) => {
           return (
             <a
